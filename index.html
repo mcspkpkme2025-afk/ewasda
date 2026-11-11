@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>E-WASDA · Pengawasan Harga &amp; Inflasi Daerah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+  :root{
+    --navy:#132A46;
+    --navy-2:#1E3E63;
+    --navy-3:#0C1D33;
+    --gold:#B3872F;
+    --gold-light:#E7C77E;
+    --cream:#F6F3EA;
+    --paper:#FFFFFF;
+    --ink:#1B1B18;
+    --ink-soft:#5B5A53;
+    --line:#E4DFD0;
+    --green:#2E6B47;
+    --green-bg:#E8F1EA;
+    --red:#AE3B26;
+    --red-bg:#F7E9E4;
+    --amber:#B4791C;
+    --amber-bg:#FBF0DD;
+    --radius:16px;
+    --shadow: 0 10px 30px rgba(19,42,70,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: linear-gradient(180deg,#0C1D33 0%, #0C1D33 260px, #EDE8D9 260px, #EDE8D9 100%);
+    font-family:'Plus Jakarta Sans', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:0;
+  }
+  .phone{
+    width:100%;
+    max-width:430px;
+    min-height:100vh;
+    background:var(--cream);
+    position:relative;
+    box-shadow: var(--shadow);
+    display:flex;
+    flex-direction:column;
+  }
+  @media(min-width:431px){
+    body{padding:28px 12px;}
+    .phone{min-height:calc(100vh - 56px); border-radius:34px; overflow:hidden; border:6px solid var(--navy-3);}
+  }
+
+  /* ---------- Top App Bar ---------- */
+  .appbar{
+    background: linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 60%, var(--navy) 100%);
+    color:#fff;
+    padding:22px 20px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  .appbar::after{
+    content:"";
+    position:absolute; right:-40px; top:-40px; width:160px; height:160px;
+    border:1px solid rgba(231,199,126,0.25); border-radius:50%;
+  }
+  .appbar::before{
+    content:"";
+    position:absolute; right:-10px; top:20px; width:110px; height:110px;
+    border:1px solid rgba(231,199,126,0.18); border-radius:50%;
+  }
+  .brandrow{display:flex; align-items:center; gap:12px; position:relative; z-index:1;}
+  .emblem{
+    width:44px;height:44px;border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, var(--gold-light), var(--gold) 70%);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Lora',serif; font-weight:700; color:var(--navy-3); font-size:16px;
+    flex-shrink:0;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.15);
+  }
+  .brand-text .eyebrow{
+    font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-light); font-weight:600;
+  }
+  .brand-text h1{
+    font-family:'Lora',serif; font-size:19px; margin:1px 0 0; font-weight:700; letter-spacing:.01em;
+  }
+  .meta-line{
+    margin-top:16px; display:flex; justify-content:space-between; align-items:flex-end; position:relative; z-index:1;
+  }
+  .meta-line .item .label{font-size:10px; color:rgba(255,255,255,0.55); text-transform:uppercase; letter-spacing:.08em;}
+  .meta-line .item .value{font-family:'IBM Plex Mono',monospace; font-size:13px; color:#fff; margin-top:2px;}
+
+  /* ---------- Content ---------- */
+  .content{ flex:1; overflow-y:auto; padding:18px 16px 100px; -webkit-overflow-scrolling:touch; }
+  .view{display:none;}
+  .view.active{display:block; animation: fadein .28s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  h2.section-title{
+    font-family:'Lora',serif; font-size:16.5px; font-weight:600; color:var(--navy); margin:26px 0 12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  h2.section-title:first-child{margin-top:2px;}
+  h2.section-title .tag{
+    font-family:'IBM Plex Mono',monospace; font-size:10px; background:var(--navy); color:#fff;
+    padding:2px 7px; border-radius:20px; letter-spacing:.03em;
+  }
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--paper); border-radius:var(--radius); padding:16px; margin-bottom:12px;
+    box-shadow:0 2px 10px rgba(19,42,70,0.06); border:1px solid var(--line);
+  }
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .stat{
+    background:var(--paper); border-radius:14px; padding:14px 14px; border:1px solid var(--line);
+    box-shadow:0 2px 10px rgba(19,42,70,0.05);
+  }
+  .stat .n{font-family:'Lora',serif; font-size:26px; font-weight:700; color:var(--navy); line-height:1;}
+  .stat .l{font-size:11px; color:var(--ink-soft); margin-top:5px;}
+  .stat.up .n{color:var(--red);} .stat.down .n{color:var(--green);}
+
+  /* ---------- Upload zone ---------- */
+  .dropzone{
+    border:1.6px dashed var(--gold); border-radius:var(--radius); padding:26px 16px; text-align:center;
+    background: repeating-linear-gradient(135deg, rgba(179,135,47,0.05) 0 10px, rgba(179,135,47,0.02) 10px 20px);
+    cursor:pointer; transition:.15s;
+  }
+  .dropzone:active{transform:scale(.99);}
+  .dropzone .ic{
+    width:50px;height:50px;border-radius:50%; margin:0 auto 10px; background:var(--navy); color:var(--gold-light);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .dropzone h3{font-family:'Lora',serif; font-size:15px; margin:0 0 4px; color:var(--navy);}
+  .dropzone p{font-size:12px; color:var(--ink-soft); margin:0;}
+  .dropzone input{display:none;}
+  .filepill{
+    display:inline-flex; align-items:center; gap:6px; margin-top:12px; background:var(--green-bg); color:var(--green);
+    font-size:11.5px; padding:6px 12px; border-radius:20px; font-weight:600;
+  }
+
+  /* ---------- Stamp ---------- */
+  .stamp-wrap{display:flex; justify-content:center; margin:14px 0 4px;}
+  .stamp{
+    width:112px;height:112px;border-radius:50%; border:2.5px solid var(--green); color:var(--green);
+    display:flex; align-items:center; justify-content:center; text-align:center; font-family:'Lora',serif;
+    font-weight:700; font-size:11px; line-height:1.25; transform:rotate(-9deg); position:relative;
+    background: radial-gradient(circle, rgba(46,107,71,0.06), transparent 70%);
+  }
+  .stamp::before{
+    content:""; position:absolute; inset:6px; border:1px solid var(--green); border-radius:50%; opacity:.55;
+  }
+
+  /* ---------- Table ---------- */
+  .tbl-wrap{overflow-x:auto; border-radius:14px; border:1px solid var(--line); background:var(--paper);}
+  table{width:100%; border-collapse:collapse; font-size:12.5px; min-width:560px;}
+  thead th{
+    background:var(--navy); color:#fff; text-align:left; padding:9px 10px; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.03em; font-weight:600; position:sticky; top:0;
+  }
+  tbody td{padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:nth-child(even){background:#FBFAF5;}
+  .num{font-family:'IBM Plex Mono',monospace; text-align:right; white-space:nowrap;}
+  .badge{display:inline-flex; align-items:center; gap:3px; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:20px;}
+  .badge.naik{background:var(--red-bg); color:var(--red);}
+  .badge.turun{background:var(--green-bg); color:var(--green);}
+  .badge.tetap{background:#EEECE2; color:var(--ink-soft);}
+  .badge.warn{background:var(--amber-bg); color:var(--amber);}
+  .src-note{display:block; font-size:10px; color:var(--ink-soft); margin-top:2px; font-style:italic;}
+
+  .search{
+    width:100%; padding:11px 14px; border-radius:12px; border:1px solid var(--line); background:var(--paper);
+    font-family:inherit; font-size:13px; margin-bottom:12px; outline:none;
+  }
+  .search:focus{border-color:var(--gold);}
+
+  /* ---------- Provinsi item cards ---------- */
+  .komoditas-item{border:1px solid var(--line); border-radius:14px; margin-bottom:10px; background:var(--paper); overflow:hidden;}
+  .komoditas-head{
+    padding:12px 14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; gap:10px;
+  }
+  .komoditas-head .nm{font-weight:700; font-size:13px; color:var(--navy);}
+  .komoditas-head .pr{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--ink);}
+  .komoditas-head .chev{color:var(--ink-soft); transition:.2s; flex-shrink:0;}
+  .komoditas-item.open .chev{transform:rotate(180deg);}
+  .komoditas-body{display:none; padding:0 14px 14px; border-top:1px dashed var(--line);}
+  .komoditas-item.open .komoditas-body{display:block;}
+  .src-line{font-size:11px; color:var(--ink-soft); padding:10px 0 4px;}
+  .src-line select{
+    width:100%; margin-top:5px; padding:8px 10px; border-radius:8px; border:1px solid var(--line); font-family:inherit; font-size:12px;
+  }
+  .opt-label{
+    display:flex; align-items:flex-start; gap:8px; padding:7px 2px; font-size:12.5px; cursor:pointer; border-radius:8px;
+  }
+  .opt-label:hover{background:#FAF7EE;}
+  .opt-label input{margin-top:2px;}
+  .opt-label.sel{color:var(--navy); font-weight:700;}
+  .freetext{
+    width:100%; margin-top:6px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;
+  }
+
+  .btn{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px 16px; border-radius:14px;
+    border:none; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:14px; cursor:pointer; letter-spacing:.01em;
+  }
+  .btn-primary{background:linear-gradient(135deg, var(--gold), #97701F); color:#fff; box-shadow:0 8px 18px rgba(179,135,47,0.35);}
+  .btn-outline{background:transparent; border:1.4px solid var(--navy); color:var(--navy); margin-top:10px;}
+  .btn:active{transform:scale(.98);}
+  .note{font-size:11.5px; color:var(--ink-soft); text-align:center; margin-top:9px; line-height:1.5;}
+
+  .empty{text-align:center; padding:40px 10px; color:var(--ink-soft);}
+  .empty .ic{font-size:36px; margin-bottom:8px;}
+  .empty h3{font-family:'Lora',serif; color:var(--navy); font-size:15px; margin:0 0 6px;}
+  .empty p{font-size:12.5px; margin:0 0 16px;}
+
+  /* ---------- Bottom nav ---------- */
+  .navbar{
+    position:sticky; bottom:0; background:rgba(255,255,255,0.96); backdrop-filter:blur(6px);
+    border-top:1px solid var(--line); display:flex; padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  }
+  .navbtn{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none;
+    color:var(--ink-soft); font-family:inherit; font-size:10.2px; font-weight:600; padding:6px 2px; border-radius:12px; cursor:pointer;
+  }
+  .navbtn svg{width:20px;height:20px;}
+  .navbtn.active{color:var(--navy);}
+  .navbtn.active .ic-wrap{background:var(--gold-light);}
+  .ic-wrap{width:30px;height:30px; border-radius:10px; display:flex;align-items:center;justify-content:center;}
+
+  .toast{
+    position:fixed; left:50%; bottom:90px; transform:translateX(-50%); background:var(--navy); color:#fff;
+    padding:10px 18px; border-radius:30px; font-size:12.5px; box-shadow:0 8px 20px rgba(0,0,0,0.25); z-index:50;
+    opacity:0; pointer-events:none; transition:.25s;
+  }
+  .toast.show{opacity:1; bottom:96px;}
+  ::-webkit-scrollbar{width:6px;height:6px;} ::-webkit-scrollbar-thumb{background:#CDBFA0;border-radius:10px;}
+
+  .inp{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:13px;margin:4px 0 8px;background:#fff}
+  .chip{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+  .chip.ok{background:var(--green-bg);color:var(--green)} .chip.off{background:var(--amber-bg);color:var(--amber)}
+  .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .tc .t{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px}
+  .tc a{font-size:11.5px;color:var(--navy-2);display:block;margin:0 0 6px;word-break:break-all}
+  .sm{padding:10px 12px;font-size:12.5px}
+  .stt{font-size:12px;color:var(--ink-soft);margin:8px 0;line-height:1.5}
+  .lbl{font-size:11.5px;color:var(--ink-soft);display:block}
+</style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<div class="phone">
+
+  <div class="appbar">
+    <div class="brandrow">
+      <div class="emblem">ME</div>
+      <div class="brand-text">
+        <div class="eyebrow">Inspektorat &amp; Disperindag · Kab. Muara Enim</div>
+        <h1>E&#8209;WASDA Inflasi</h1>
+      </div>
+    </div>
+    <div class="meta-line">
+      <div class="item">
+        <div class="label">Pasar Pantauan</div>
+        <div class="value" id="metaPasar">—</div>
+      </div>
+      <div class="item" style="text-align:right;">
+        <div class="label">Tanggal Data</div>
+        <div class="value" id="metaTanggal">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ===================== VIEW: BERANDA ===================== -->
+    <div class="view active" id="view-beranda">
+      <h2 class="section-title"><span class="tag">01</span> Unggah Data SP2KP</h2>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div class="dropzone" id="dropzone">
+          <div class="ic">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h3>Unggah Kertas Kerja SP2KP</h3>
+          <p>Tap untuk memilih file .xlsx harian dari Pasar (format Lap. SP2KP)</p>
+          <div id="filepillWrap"></div>
+          <input type="file" id="fileInput" accept=".xlsx,.xls">
+        </div>
+      </div>
+      <div class="note" id="uploadStatus">Belum ada data yang diunggah. Sheet lain (Was Inflasi &amp; Laporan Provinsi) akan menyesuaikan otomatis begitu file diunggah.</div>
+
+      <div id="stampArea"></div>
+
+      <h2 class="section-title"><span class="tag">02</span> Ringkasan Harga Hari Ini</h2>
+      <div class="stat-grid">
+        <div class="stat"><div class="n" id="statTotal">0</div><div class="l">Komoditi Dipantau</div></div>
+        <div class="stat up"><div class="n" id="statNaik">0</div><div class="l">Harga Naik</div></div>
+        <div class="stat down"><div class="n" id="statTurun">0</div><div class="l">Harga Turun</div></div>
+        <div class="stat"><div class="n" id="statTetap">0</div><div class="l">Harga Tetap</div></div>
+      </div>
+
+      <h2 class="section-title"><span class="tag">03</span> Status 20 Komoditi Inti</h2>
+      <div class="card" id="intiSummaryCard">
+        <div class="empty" style="padding:14px 0;"><p style="margin:0;">Unggah data untuk melihat status pemetaan ke Laporan Provinsi &amp; Was Inflasi.</p></div>
+      </div>
+      <h2 class="section-title"><span class="tag">04</span> Koneksi Google Drive</h2>
+      <div id="driveCard"></div>
+    </div>
+
+    <!-- ===================== VIEW: SP2KP ===================== -->
+    <div class="view" id="view-sp2kp">
+      <h2 class="section-title" style="margin-top:2px;"><span class="tag">SP2KP</span> Kertas Kerja Harian</h2>
+      <input class="search" id="searchSP2KP" placeholder="Cari komoditi…">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>No</th><th>Varian Komoditi</th><th>Satuan</th><th>Harga Ini</th><th>Sebelum</th><th>Status</th><th>Penyebab Kenaikan</th>
+          </tr></thead>
+          <tbody id="tblSP2KP"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="emptySP2KP" style="display:none;">
+        <div class="ic">📄</div><h3>Belum ada data</h3><p>Silakan unggah file SP2KP terlebih dahulu di tab Beranda.</p>
+      </div>
+    </div>
+
+    <!-- ===================== VIEW: WAS INFLASI ===================== -->
+    <div class="view" id="view-wasinflasi">
+      <h2 class="section-title" style="margin-top:2px;"><span class="tag">20</span> Input Was Inflasi</h2>
+      <p class="note" style="margin-bottom:14px; text-align:left;">Data harga &amp; keterangan penyebab kenaikan untuk 20 komoditi inti pada website Was Inflasi — nilai diambil langsung dari data SP2KP yang diunggah, tanpa perubahan.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>No</th><th>Komoditi</th><th>Harga (Rp)</th><th>Penyebab</th></tr></thead>
+          <tbody id="tblWasInflasi"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="emptyWasInflasi" style="display:none;">
+        <div class="ic">📊</div><h3>Belum ada data</h3><p>Silakan unggah file SP2KP terlebih dahulu di tab Beranda.</p>
+      </div>
+    </div>
+
+    <!-- ===================== VIEW: LAPORAN PROVINSI ===================== -->
+    <div class="view" id="view-provinsi">
+      <h2 class="section-title" style="margin-top:2px;"><span class="tag">Prov</span> Harga Jual Komoditi</h2>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>No</th><th>Uraian</th><th>Harga Jual (Rp)</th></tr></thead>
+          <tbody id="tblProvinsiHarga"></tbody>
+        </table>
+      </div>
+
+      <h2 class="section-title"><span class="tag">✓</span> Penyebab Kenaikan Harga</h2>
+      <p class="note" style="margin-bottom:12px; text-align:left;">Tanda centang terisi otomatis berdasarkan data SP2KP. Ketuk sebuah komoditi untuk memeriksa atau mengubah pilihan secara manual sebelum diunduh.</p>
+      <div id="provinsiChecklist"></div>
+
+      <div class="empty" id="emptyProvinsi" style="display:none;">
+        <div class="ic">📥</div><h3>Belum ada data</h3><p>Silakan unggah file SP2KP terlebih dahulu di tab Beranda.</p>
+      </div>
+
+      <h2 class="section-title"><span class="tag">06</span> Dukungan Anggaran</h2>
+      <div id="anggaranArea"></div>
+
+      <div style="margin-top:22px;" id="downloadArea"></div>
+    </div>
+
+    <div class="view" id="view-tindakan">
+      <h2 class="section-title" style="margin-top:2px;"><span class="tag">9</span> Tindakan Pengendalian Inflasi</h2>
+      <div class="card"><label class="lbl">Lihat riwayat unggah per tanggal (unggahan baru otomatis memakai tanggal hari ini)</label>
+        <input type="date" class="inp" id="tindakanDate" onchange="G.tdate=this.value;renderTindakan()" style="margin-bottom:0">
+        <div class="stt" id="tindakanNote" style="color:var(--red)"></div></div>
+      <div class="stt" id="tindakanStatus"></div>
+      <div id="tindakanList"></div>
+    </div>
+    <div class="view" id="view-rekap">
+      <h2 class="section-title" style="margin-top:2px;"><span class="tag">Rekap</span> Rekap Harian di Google Sheets</h2>
+      <div id="rekapBox"></div>
+    </div>
+  </div>
+
+  <div class="navbar">
+    <button class="navbtn active" data-view="beranda">
+      <span class="ic-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+      Beranda
+    </button>
+    <button class="navbtn" data-view="sp2kp">
+      <span class="ic-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18M3 15h18M9 3v18"/></svg></span>
+      SP2KP
+    </button>
+    <button class="navbtn" data-view="wasinflasi">
+      <span class="ic-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>
+      Was Inflasi
+    </button>
+    <button class="navbtn" data-view="provinsi">
+      <span class="ic-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+      Lap. Provinsi
+    </button>
+    <button class="navbtn" data-view="tindakan"><span class="ic-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Tindakan</button>
+    <button class="navbtn" data-view="rekap"><span class="ic-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg></span>Rekap</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* =========================================================================
+   E-WASDA INFLASI — Logika Aplikasi
+   Inspektorat & Disperindag Kabupaten Muara Enim
+   ========================================================================= */
+
+/* ---------------------- 1. KONFIGURASI 20 KOMODITI INTI ---------------------- */
+/* PENTING: pemetaan "sourceNo" di bawah ini BUKAN tebakan nama, melainkan hasil
+   pembacaan RUMUS ASLI yang sudah ada pada file Data_Input_2026.xlsx, yaitu:
+     'Laporan Provinsis'!D7  = 'Laporan sp2kp'!D12   -> item No.2 (Beras Cap Belitang Medium)
+     'Laporan Provinsis'!D8  = 'Laporan sp2kp'!D26   -> item No.16 (Daging Ayam Broiler/Ras)
+     ...dst (lihat dokumentasi internal). Karena Kertas Kerja SP2KP selalu memuat
+   51 varian dalam urutan No. yang tetap setiap hari, pemetaan berdasarkan
+   "No." varian (bukan nama) inilah cara paling akurat & sesuai rumus resmi.
+   Pencocokan nama (fallbackMatch) hanya dipakai sebagai cadangan jika suatu
+   hari No. tidak ditemukan pada file yang diunggah. */
+
+const TARGETS = [
+  { id:'beras', no:1, sourceNo:2, nama:'Beras Medium (1 kg)', checklistNo:1, checklistTitle:'Beras', titleRow:28, optionStartRow:29,
+    fallbackMatch:{requireAll:['beras'], preferKeyword:'medium', excludeAny:['sphp'], tie:'min'},
+    options:['Tidak ada kenaikan','Kurang pasokan dari daerah pemasok','Kenaikan harga gabah','Gagal panen','Kebijakan pembagian paket beras PKH','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'ayamras', no:2, sourceNo:16, nama:'Daging ayam ras (1 kg)', checklistNo:2, checklistTitle:'Daging ayam ras', titleRow:37, optionStartRow:38,
+    fallbackMatch:{requireAll:['ayam'], preferKeyword:'ras', excludeAny:['kampung','telur']},
+    options:['Tidak ada kenaikan','Kurang pasokan dari daerah pemasok','Kenaikan harga pakan ternak','Kebijakan pembagian paket beras PKH','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'telurras', no:3, sourceNo:18, nama:'Telur ayam ras (1 Kg)', checklistNo:3, checklistTitle:'Telur ayam ras', titleRow:45, optionStartRow:46,
+    fallbackMatch:{requireAll:['telur','ayam'], preferKeyword:'negeri', excludeAny:['kampung']},
+    options:['Tidak ada kenaikan','Kurang pasokan dari daerah pemasok','Gagal panen','Belum musim panen','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'cabaimerah', no:4, sourceNo:27, nama:'Cabai merah (1 Kg)', checklistNo:5, checklistTitle:'Cabai Merah', titleRow:60, optionStartRow:61,
+    fallbackMatch:{requireAny:['cabe','cabai'], requireAll:['merah'], excludeAny:['rawit'], tie:'min'},
+    options:['Tidak ada kenaikan','Kurang pasokan dari daerah pemasok','Gagal panen','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'cabairawit', no:5, sourceNo:30, nama:'Cabai Rawit (1 Kg)', checklistNo:6, checklistTitle:'Cabai Rawit', titleRow:67, optionStartRow:68,
+    fallbackMatch:{requireAny:['cabe','cabai'], requireAll:['rawit'], tie:'min'},
+    options:['Tidak ada kenaikan','Kurang pasokan dari daerah pemasok','Gagal panen','Kenaikan ongkos angkut','Belum musim panen','Yang lain'] },
+
+  { id:'bawangmerah', no:6, sourceNo:31, nama:'Bawang Merah (1 Kg)', checklistNo:4, checklistTitle:'Bawang Merah', titleRow:53, optionStartRow:54,
+    fallbackMatch:{requireAll:['bawang','merah']},
+    options:['Tidak ada kenaikan','Kurang pasokan dari daerah pemasok','Gagal panen','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'bawangputih', no:7, sourceNo:32, nama:'Bawang Putih (1 Kg)', checklistNo:9, checklistTitle:'Bawang Putih', titleRow:89, optionStartRow:90,
+    fallbackMatch:{requireAll:['bawang','putih']},
+    options:['Tidak ada kenaikan','Menurunnya produksi lokal','Kurangnya pasokan dari daerah pemasok','Permintaan mengalami peningkatan','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'minyakcurah', no:8, sourceNo:9, nama:'Minyak Goreng curah (1 Kg)', checklistNo:7, checklistTitle:'Minyak goreng', titleRow:75, optionStartRow:76,
+    fallbackMatch:{requireAll:['minyak'], preferKeyword:'minyakita', tie:'min'},
+    options:['Tidak ada kenaikan','Kurang pasokan dari daerah pemasok','Gagal panen','Kenaikan ongkos angkut','Belum musim panen','Yang lain'] },
+
+  { id:'gulapasir', no:9, sourceNo:7, nama:'Gula Pasir (1 Kg)', checklistNo:8, checklistTitle:'Gula Pasir', titleRow:83, optionStartRow:84,
+    fallbackMatch:{requireAll:['gula'], preferKeyword:'curah', tie:'min'},
+    options:['Tidak ada kenaikan','Kurang pasokan','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'dagingsapi', no:10, sourceNo:10, nama:'Daging Sapi (1 Kg)', checklistNo:10, checklistTitle:'Daging Sapi', titleRow:97, optionStartRow:98,
+    fallbackMatch:{requireAll:['daging','sapi'], excludeAny:['impor','kerbau','tetelan'], preferList:['paha depan','chuck','paha belakang','sandung','brisket']},
+    options:['Tidak ada kenaikan','Menurunnya produksi lokal','Kurang pasokan dari daerah pemasok','Permintaan mengalami peningkatan','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'pisang', no:11, sourceNo:43, nama:'Pisang (1 kg)', checklistNo:17, checklistTitle:'Pisang', titleRow:144, optionStartRow:145,
+    fallbackMatch:{requireAll:['pisang']},
+    options:['Tidak ada kenaikan','Kurang pasokan','Kenaikan ongkos angkut','Gagal panen','Yang lain'] },
+
+  { id:'susudancow', no:12, sourceNo:20, nama:'Susu bubuk per dus dancow vanila 400-500 gram)', checklistNo:18, checklistTitle:'Susu Bubuk', titleRow:151, optionStartRow:152,
+    fallbackMatch:{requireAll:['susu'], preferKeyword:'dancow', excludeAny:['kental','balita']},
+    options:['Tidak ada kenaikan','Kurang pasokan','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'tempe', no:13, sourceNo:25, nama:'Tempe ( 1 kg)', checklistNo:15, checklistTitle:'Tempe', titleRow:132, optionStartRow:133,
+    fallbackMatch:{requireAll:['tempe']},
+    options:['Tidak ada kenaikan','Kurang pasokan','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'tahu', no:14, sourceNo:26, nama:'Tahu Mentah (1 kg)', checklistNo:16, checklistTitle:'Tahu mentah', titleRow:138, optionStartRow:139,
+    fallbackMatch:{requireAll:['tahu']},
+    options:['Tidak ada kenaikan','Kurang pasokan','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'tepungterigu', no:15, sourceNo:23, nama:'Tepung Terigu (1 Kg)', checklistNo:11, checklistTitle:'Tepung terigu', titleRow:105, optionStartRow:106,
+    fallbackMatch:{requireAll:['tepung','terigu']},
+    options:['Tidak ada kenaikan','Kurangnya pasokan dari daerah pemasok','Gagal panen','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'susubalita', no:16, sourceNo:22, nama:'Susu balita (SGM atau sejenis 400 gram)', checklistNo:19, checklistTitle:'Susu kemasan', titleRow:157, optionStartRow:158,
+    fallbackMatch:{requireAll:['susu'], preferKeyword:'balita'},
+    options:['Tidak ada kenaikan','Kurang pasokan','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'udang', no:17, sourceNo:45, nama:'Udang (1 Kg)', checklistNo:12, checklistTitle:'Udang', titleRow:112, optionStartRow:113,
+    fallbackMatch:{requireAll:['udang']},
+    options:['Tidak ada kenaikan','Kurang pasokan dari daerah pemasok','Gagal panen','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'ikan', no:18, sourceNo:35, nama:'Ikan Kembung/Tongkol (1 kg)', checklistNo:13, checklistTitle:'Ikan Kembung', titleRow:119, optionStartRow:120,
+    fallbackMatch:{requireAll:['ikan'], preferList:['kembung','tongkol']},
+    options:['Tidak ada kenaikan','Kurang pasokan dari daerah pemasok','Tingginya permintaan','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'jeruk', no:19, sourceNo:44, nama:'Jeruk (1 kg)', checklistNo:20, checklistTitle:'Jeruk', titleRow:163, optionStartRow:164,
+    fallbackMatch:{requireAll:['jeruk']},
+    options:['Tidak ada kenaikan','Kurang pasokan','Kenaikan ongkos angkut','Yang lain'] },
+
+  { id:'mieinstan', no:20, sourceNo:39, nama:'Mie Instan ( Indomie per 1 bungkus)', checklistNo:14, checklistTitle:'Mie Instan', titleRow:126, optionStartRow:127,
+    fallbackMatch:{requireAny:['mie','indomie']},
+    options:['Tidak ada kenaikan','Kurang pasokan','Kenaikan ongkos angkut','Yang lain'] },
+];
+TARGETS.forEach(t=>{ t.priceRow = 6 + t.no; }); // baris harga di sheet Laporan Provinsis (B7..B26 -> row 7..26)
+
+/* Urutan tampilan tab "Was Inflasi" — TIDAK sama dengan urutan Laporan Provinsi.
+   Urutan ini dibaca langsung dari rumus pada sheet "Input was Inflasi":
+   B3..B22 = ='Laporan Provinsis'!C7, C8, C9, C12, C13, C10, C11, C14, C15, C16,
+             C21, C23, C24, C26, C19, C20, C17, C18, C22, C25  -> urutan komoditi berikut: */
+const WASINFLASI_ORDER = ['beras','ayamras','telurras','bawangmerah','bawangputih','cabaimerah','cabairawit',
+  'minyakcurah','gulapasir','dagingsapi','tepungterigu','udang','ikan','mieinstan','tempe','tahu','pisang',
+  'susudancow','susubalita','jeruk'];
+
+/* ---------------------- 2. STATE ---------------------- */
+const state = {
+  sp2kp: [],
+  meta: { tanggal:'', pasar:'', fileName:'' },
+  mapped: [],   // 20 entri hasil pemetaan
+  currentView: 'beranda',
+  // Dukungan Anggaran (bagian 6) — nilai tetap, dapat diubah manual oleh petugas.
+  anggaran: { alokasi: 1057800000, realisasi: 154392000 },
+};
+
+const STORAGE_KEY = 'ewasda_muaraenim_v1';
+
+/* ---------------------- 3. UTIL ---------------------- */
+function norm(s){ return String(s==null?'':s).toLowerCase().trim(); }
+function fmtRp(n){
+  if(n===null || n===undefined || isNaN(n)) return '—';
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+function toNumber(v){
+  if(typeof v === 'number') return v;
+  if(v==null) return NaN;
+  const s = String(v).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
+  const n = parseFloat(s);
+  return isNaN(n)?NaN:n;
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function tagOf(text){
+  const t = norm(text);
+  if(!t) return 'kosong';
+  if(t.startsWith('tidak ada')) return 'none';
+  if(t.startsWith('yang lain')) return 'lain';
+  if(t.includes('menurunnya produksi') || t.includes('produksi lokal')) return 'produksi_lokal';
+  if(t.includes('kurang')) return 'kurang_pasokan';
+  if(t.includes('gagal panen')) return 'gagal_panen';
+  if(t.includes('belum musim panen')) return 'belum_musim_panen';
+  if(t.includes('pakan ternak')) return 'pakan_ternak';
+  if(t.includes('harga gabah') || t.includes('gabah')) return 'gabah';
+  if(t.includes('pkh')) return 'pkh';
+  if(t.includes('permintaan')) return 'permintaan';
+  if(t.includes('ongkos angkut') || t.includes('transportasi') || t.includes('angkut')) return 'ongkos_angkut';
+  return 'lain';
+}
+
+/* ---------------------- 4. PARSER FILE SP2KP ---------------------- */
+function findHeaderInfo(aoa){
+  for(let r=0;r<aoa.length;r++){
+    const row = aoa[r] || [];
+    for(let c=0;c<row.length;c++){
+      if(norm(row[c]) === 'varian komoditi'){ return {row:r, col:c}; }
+    }
+  }
+  return null;
+}
+function findColInRows(aoa, rowIdx, label){
+  for(let r=rowIdx;r<=rowIdx+1 && r<aoa.length;r++){
+    const row = aoa[r] || [];
+    for(let c=0;c<row.length;c++){
+      if(norm(row[c]) === label){ return c; }
+    }
+  }
+  return -1;
+}
+function parseSP2KPWorkbook(wb){
+  // 1. cari sheet yang memuat header "Varian Komoditi"
+  let target = null;
+  for(const sn of wb.SheetNames){
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[sn], {header:1, raw:true, defval:null});
+    const hi = findHeaderInfo(aoa);
+    if(hi){ target = {sheetName:sn, aoa, headerInfo:hi}; break; }
+  }
+  if(!target) throw new Error('Sheet dengan kolom "Varian Komoditi" tidak ditemukan pada file ini. Pastikan file sesuai format Kertas Kerja SP2KP.');
+
+  const { aoa, headerInfo } = target;
+  const colVarian = headerInfo.col;
+  const colNo = colVarian - 1;
+  const colSatuan = colVarian + 1;
+  const colHariIni = findColInRows(aoa, headerInfo.row, 'harga hari ini');
+  const colSebelumnya = findColInRows(aoa, headerInfo.row, 'harga sebelumnya');
+  let colPenyebab = -1;
+  for(let r=headerInfo.row;r<=headerInfo.row+1 && r<aoa.length;r++){
+    const row = aoa[r]||[];
+    for(let c=0;c<row.length;c++){
+      if(norm(row[c]) === 'penyebab kenaikan'){ colPenyebab = c; }
+    }
+  }
+
+  // 2. cari baris awal data (baris dengan No=1 dan Varian berupa teks panjang)
+  let dataStart = -1;
+  for(let r=headerInfo.row+1; r<Math.min(headerInfo.row+8, aoa.length); r++){
+    const row = aoa[r]||[];
+    const noVal = row[colNo];
+    const varVal = row[colVarian];
+    if((noVal===1 || norm(noVal)==='1') && typeof varVal==='string' && varVal.trim().length>3){
+      dataStart = r; break;
+    }
+  }
+  if(dataStart===-1) throw new Error('Baris data komoditi tidak dapat ditemukan pada sheet SP2KP.');
+
+  const items = [];
+  for(let r=dataStart; r<aoa.length; r++){
+    const row = aoa[r]||[];
+    const varVal = row[colVarian];
+    if(varVal===null || varVal===undefined || String(varVal).trim()==='') break;
+    const hargaHariIni = toNumber(row[colHariIni]);
+    const hargaSebelumnya = toNumber(row[colSebelumnya]);
+    const penyebab = colPenyebab>=0 ? String(row[colPenyebab]==null?'':row[colPenyebab]).trim() : '';
+    items.push({
+      no: row[colNo],
+      varian: String(varVal).trim(),
+      satuan: row[colSatuan]==null?'':String(row[colSatuan]).trim(),
+      hargaHariIni: isNaN(hargaHariIni)?null:hargaHariIni,
+      hargaSebelumnya: isNaN(hargaSebelumnya)?null:hargaSebelumnya,
+      penyebab: penyebab,
+    });
+  }
+  if(items.length===0) throw new Error('Tidak ada baris komoditi yang berhasil dibaca dari file.');
+
+  // 3. cari metadata tanggal & pasar
+  let tanggal = '', pasar = '';
+  for(let r=0;r<Math.min(headerInfo.row, aoa.length);r++){
+    const row = aoa[r]||[];
+    const a = norm(row[0]);
+    if(a.includes('tanggal') && row[1]){ tanggal = String(row[1]).trim(); }
+    if(a.startsWith('pasar ') || a.startsWith('pasar')){
+      const raw = row[0]!=null ? String(row[0]).trim() : '';
+      if(raw && raw.length<40) pasar = raw;
+    }
+  }
+  return { items, tanggal, pasar, sheetName: target.sheetName };
+}
+
+/* ---------------------- 5. MESIN PENCOCOKAN (RUMUS POSISI TETAP + FALLBACK) ---------------------- */
+function matchByFallbackName(fm, items){
+  if(!fm) return null;
+  let candidates = items.filter(it=>{
+    const n = norm(it.varian);
+    if(fm.requireAll){ for(const k of fm.requireAll){ if(!n.includes(k)) return false; } }
+    if(fm.requireAny){ if(!fm.requireAny.some(k=>n.includes(k))) return false; }
+    if(fm.excludeAny){ if(fm.excludeAny.some(k=>n.includes(k))) return false; }
+    return true;
+  });
+  if(candidates.length===0) return null;
+  if(candidates.length>1 && fm.preferList){
+    for(const kw of fm.preferList){
+      const found = candidates.filter(it=>norm(it.varian).includes(kw));
+      if(found.length){ candidates = found; break; }
+    }
+  } else if(candidates.length>1 && fm.preferKeyword){
+    const found = candidates.filter(it=>norm(it.varian).includes(fm.preferKeyword));
+    if(found.length) candidates = found;
+  }
+  if(candidates.length>1 && fm.tie==='min'){
+    candidates = candidates.slice().sort((a,b)=>(a.hargaHariIni||0)-(b.hargaHariIni||0));
+  }
+  return candidates[0];
+}
+function matchTarget(target, items){
+  // 1) RUMUS UTAMA: cocokkan berdasarkan No. varian tetap (persis seperti rumus asli file Excel)
+  const bySourceNo = items.find(it => String(it.no).trim() === String(target.sourceNo));
+  if(bySourceNo && bySourceNo.hargaHariIni!=null){
+    bySourceNo.__viaFallback = false;
+    return bySourceNo;
+  }
+  // 2) CADANGAN: jika No. tidak ditemukan (mis. struktur file berubah), coba cocokkan nama
+  const viaName = matchByFallbackName(target.fallbackMatch, items);
+  if(viaName){ viaName.__viaFallback = true; return viaName; }
+  return bySourceNo || null;
+}
+
+function computeTick(target, sourceItem){
+  if(!sourceItem || sourceItem.hargaHariIni==null){
+    return { status:'notfound', tickIndex:null, freeText:'', naik:false };
+  }
+  const hi = sourceItem.hargaHariIni;
+  const hs = sourceItem.hargaSebelumnya;
+  const naik = (hs!=null) && hi > hs;
+  const turun = (hs!=null) && hi < hs;
+  if(!naik){
+    return { status: turun?'turun':'tetap', tickIndex:0, freeText:'', naik:false };
+  }
+  const penTag = tagOf(sourceItem.penyebab);
+  if(penTag==='kosong'){
+    return { status:'naik', tickIndex:null, freeText:'', naik:true, needsReview:true };
+  }
+  if(penTag!=='lain' && penTag!=='none'){
+    for(let i=1;i<target.options.length-1;i++){
+      if(tagOf(target.options[i]) === penTag){
+        return { status:'naik', tickIndex:i, freeText:'', naik:true };
+      }
+    }
+  }
+  // fallback: "Yang lain" + salin teks aslinya (data asli, tidak direkayasa)
+  const lastIdx = target.options.length-1;
+  const teks = sourceItem.penyebab.trim();
+  const cap = teks.charAt(0).toUpperCase()+teks.slice(1);
+  return { status:'naik', tickIndex:lastIdx, freeText:cap, naik:true };
+}
+
+function buildMapping(){
+  state.mapped = TARGETS.map(target=>{
+    const src = matchTarget(target, state.sp2kp);
+    const tick = computeTick(target, src);
+    return {
+      target,
+      sourceItem: src,
+      sourceOverrideVarian: null, // jika diisi manual oleh petugas, isi nama varian terpilih
+      tickIndex: tick.tickIndex,
+      freeText: tick.freeText,
+      status: tick.status,
+      needsReview: !!tick.needsReview,
+      manualOverride: false,
+    };
+  });
+}
+
+/* ---------------------- 6. PERSISTENSI LOKAL ---------------------- */
+function persist(){
+  try{
+    const toSave = {
+      sp2kp: state.sp2kp, meta: state.meta, anggaran: state.anggaran,
+      mappedLite: state.mapped.map(m=>({ id:m.target.id, tickIndex:m.tickIndex, freeText:m.freeText, manualOverride:m.manualOverride, sourceOverrideVarian:m.sourceOverrideVarian }))
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  }catch(e){ /* abaikan jika penyimpanan penuh/diblokir */ }
+}
+function restore(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const data = JSON.parse(raw);
+    if(data.anggaran) state.anggaran = data.anggaran;
+    if(!data.sp2kp || !data.sp2kp.length) return false;
+    state.sp2kp = data.sp2kp;
+    state.meta = data.meta || {};
+    buildMapping();
+    (data.mappedLite||[]).forEach(lite=>{
+      const m = state.mapped.find(x=>x.target.id===lite.id);
+      if(m && lite.manualOverride){
+        m.tickIndex = lite.tickIndex; m.freeText = lite.freeText; m.manualOverride = true;
+        if(lite.sourceOverrideVarian){
+          m.sourceOverrideVarian = lite.sourceOverrideVarian;
+          const found = state.sp2kp.find(it=>it.varian===lite.sourceOverrideVarian);
+          if(found) m.sourceItem = found;
+        }
+      }
+    });
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ---------------------- 7. RENDER: BERANDA ---------------------- */
+function renderBeranda(){
+  document.getElementById('metaPasar').textContent = state.meta.pasar || '—';
+  document.getElementById('metaTanggal').textContent = state.meta.tanggal || '—';
+
+  const pillWrap = document.getElementById('filepillWrap');
+  const uploadStatus = document.getElementById('uploadStatus');
+  const stampArea = document.getElementById('stampArea');
+  if(state.sp2kp.length){
+    pillWrap.innerHTML = `<div class="filepill">✓ ${state.meta.fileName || 'Data tersimpan'} · ${state.sp2kp.length} komoditi</div>`;
+    uploadStatus.textContent = 'Sheet Was Inflasi & Laporan Provinsi telah menyesuaikan otomatis mengikuti data ini. Unggah file baru kapan pun untuk memperbarui.';
+    stampArea.innerHTML = `<div class="stamp-wrap"><div class="stamp">DATA<br>TERVERIFIKASI<br>SISTEM</div></div>`;
+  }else{
+    pillWrap.innerHTML = '';
+    uploadStatus.textContent = 'Belum ada data yang diunggah. Sheet lain (Was Inflasi & Laporan Provinsi) akan menyesuaikan otomatis begitu file diunggah.';
+    stampArea.innerHTML = '';
+  }
+
+  const total = state.sp2kp.length;
+  const naik = state.sp2kp.filter(it=>it.hargaSebelumnya!=null && it.hargaHariIni!=null && it.hargaHariIni>it.hargaSebelumnya).length;
+  const turun = state.sp2kp.filter(it=>it.hargaSebelumnya!=null && it.hargaHariIni!=null && it.hargaHariIni<it.hargaSebelumnya).length;
+  const tetap = total - naik - turun;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statNaik').textContent = naik;
+  document.getElementById('statTurun').textContent = turun;
+  document.getElementById('statTetap').textContent = tetap;
+
+  const card = document.getElementById('intiSummaryCard');
+  if(!state.mapped.length){
+    card.innerHTML = `<div class="empty" style="padding:14px 0;"><p style="margin:0;">Unggah data untuk melihat status pemetaan ke Laporan Provinsi & Was Inflasi.</p></div>`;
+    return;
+  }
+  const rows = state.mapped.map(m=>{
+    let badge = '';
+    if(m.status==='notfound') badge = `<span class="badge warn">Tidak ditemukan</span>`;
+    else if(m.needsReview) badge = `<span class="badge warn">Perlu dicek</span>`;
+    else if(m.status==='naik') badge = `<span class="badge naik">▲ Naik</span>`;
+    else if(m.status==='turun') badge = `<span class="badge turun">▼ Turun</span>`;
+    else badge = `<span class="badge tetap">Tetap</span>`;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px;">
+      <span>${m.target.nama}</span>${badge}
+    </div>`;
+  }).join('');
+  card.innerHTML = `<div>${rows}</div>`;
+}
+
+/* ---------------------- 8. RENDER: SP2KP ---------------------- */
+function statusOf(it){
+  if(it.hargaSebelumnya==null || it.hargaHariIni==null) return 'tetap';
+  if(it.hargaHariIni>it.hargaSebelumnya) return 'naik';
+  if(it.hargaHariIni<it.hargaSebelumnya) return 'turun';
+  return 'tetap';
+}
+function renderSP2KP(filter){
+  const tbody = document.getElementById('tblSP2KP');
+  const empty = document.getElementById('emptySP2KP');
+  if(!state.sp2kp.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const f = norm(filter||'');
+  const rows = state.sp2kp.filter(it=>!f || norm(it.varian).includes(f));
+  tbody.innerHTML = rows.map(it=>{
+    const st = statusOf(it);
+    const badgeMap = { naik:'<span class="badge naik">▲ Naik</span>', turun:'<span class="badge turun">▼ Turun</span>', tetap:'<span class="badge tetap">Tetap</span>' };
+    return `<tr>
+      <td>${it.no ?? ''}</td>
+      <td>${it.varian}</td>
+      <td>${it.satuan||''}</td>
+      <td class="num">${fmtRp(it.hargaHariIni)}</td>
+      <td class="num">${fmtRp(it.hargaSebelumnya)}</td>
+      <td>${badgeMap[st]}</td>
+      <td>${it.penyebab && it.penyebab!=='0' ? it.penyebab : '<span style="color:var(--ink-soft)">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ---------------------- 9. RENDER: WAS INFLASI ---------------------- */
+function wasInflasiRows(){
+  // Urutan & penomoran 1-20 MENGIKUTI persis urutan pada sheet "Input was Inflasi"
+  // (dibaca dari rumus asli), bukan urutan Laporan Provinsi.
+  return WASINFLASI_ORDER.map((id, idx)=>{
+    const m = state.mapped.find(x=>x.target.id===id);
+    return { no: idx+1, m };
+  });
+}
+function renderWasInflasi(){
+  const tbody = document.getElementById('tblWasInflasi');
+  const empty = document.getElementById('emptyWasInflasi');
+  if(!state.mapped.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = wasInflasiRows().map(({no, m})=>{
+    const harga = m.sourceItem ? fmtRp(m.sourceItem.hargaHariIni) : '<span class="badge warn">Tidak ditemukan</span>';
+    let penyebabTxt = '0';
+    if(m.status==='naik'){
+      penyebabTxt = m.freeText ? m.freeText : (m.tickIndex!=null ? m.target.options[m.tickIndex] : '⚠ Perlu diisi manual');
+    }
+    const fallbackNote = m.sourceItem && m.sourceItem.__viaFallback ? ' <span class="src-note" style="color:var(--amber)">(via pencocokan nama — No. tetap tak ditemukan)</span>' : '';
+    const srcNote = m.sourceItem ? `<span class="src-note">Sumber: SP2KP No.${m.sourceItem.no} — ${m.sourceItem.varian}${fallbackNote}</span>` : '';
+    return `<tr>
+      <td>${no}</td>
+      <td>${m.target.nama}${srcNote}</td>
+      <td class="num">${harga}</td>
+      <td>${penyebabTxt==='0' ? '<span style="color:var(--ink-soft)">0</span>' : penyebabTxt}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ---------------------- 10. RENDER: LAPORAN PROVINSI ---------------------- */
+function renderAnggaranCard(){
+  return `<div class="card">
+    <div style="font-family:'Lora',serif; font-weight:600; color:var(--navy); font-size:13.5px; margin-bottom:10px;">6. Dukungan Anggaran</div>
+    <div style="margin-bottom:10px;">
+      <label style="font-size:11.5px; color:var(--ink-soft); display:block; margin-bottom:4px;">a. Alokasi Belanja Operasi Pasar pada Dinas Perdagangan (Rp)</label>
+      <input type="text" class="freetext" style="margin-top:0;" value="${Number(state.anggaran.alokasi||0).toLocaleString('id-ID')}"
+        onchange="onAnggaranChange('alokasi', this.value)">
+    </div>
+    <div>
+      <label style="font-size:11.5px; color:var(--ink-soft); display:block; margin-bottom:4px;">b. Realisasi Belanja Operasi Pasar pada Dinas Perdagangan (Rp)</label>
+      <input type="text" class="freetext" style="margin-top:0;" value="${Number(state.anggaran.realisasi||0).toLocaleString('id-ID')}"
+        onchange="onAnggaranChange('realisasi', this.value)">
+    </div>
+    <div class="note" style="text-align:left; margin-top:8px;">c. Alokasi BTT &amp; d. Realisasi BTT dikosongkan sesuai ketentuan. Nilai a &amp; b di atas otomatis dipakai saat Laporan Provinsi diunduh — ubah kapan saja bila ada pembaruan.</div>
+  </div>`;
+}
+function onAnggaranChange(field, value){
+  const n = toNumber(value);
+  state.anggaran[field] = isNaN(n) ? 0 : n;
+  persist();
+  renderProvinsi();
+}
+
+function renderProvinsi(){
+  const tHarga = document.getElementById('tblProvinsiHarga');
+  const checklistWrap = document.getElementById('provinsiChecklist');
+  const empty = document.getElementById('emptyProvinsi');
+  const dlArea = document.getElementById('downloadArea');
+  const anggaranWrap = document.getElementById('anggaranArea');
+  if(anggaranWrap) anggaranWrap.innerHTML = renderAnggaranCard();
+
+  if(!state.mapped.length){
+    tHarga.innerHTML=''; checklistWrap.innerHTML=''; dlArea.innerHTML='';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+
+  tHarga.innerHTML = state.mapped.map(m=>{
+    const harga = m.sourceItem ? fmtRp(m.sourceItem.hargaHariIni) : '<span class="badge warn">Tidak ditemukan</span>';
+    return `<tr><td>${m.target.no}</td><td>${m.target.nama}</td><td class="num">${harga}</td></tr>`;
+  }).join('');
+
+  checklistWrap.innerHTML = state.mapped.map((m,idx)=>{
+    const opts = m.target.options.map((opt,i)=>{
+      const checked = m.tickIndex===i ? 'checked' : '';
+      const selCls = m.tickIndex===i ? 'sel' : '';
+      return `<label class="opt-label ${selCls}">
+        <input type="radio" name="opt-${idx}" value="${i}" ${checked} onchange="onOptionChange(${idx}, this.value)">
+        <span>${opt}</span>
+      </label>`;
+    }).join('');
+    const statusBadge = m.status==='notfound' ? '<span class="badge warn">Tidak ditemukan</span>'
+      : m.needsReview ? '<span class="badge warn">Perlu dicek</span>'
+      : m.status==='naik' ? '<span class="badge naik">▲ Naik</span>'
+      : m.status==='turun' ? '<span class="badge turun">▼ Turun</span>'
+      : '<span class="badge tetap">Tetap</span>';
+    const hargaTxt = m.sourceItem ? fmtRp(m.sourceItem.hargaHariIni) : '—';
+
+    const candidateOptions = state.sp2kp.map(it=>`<option value="${it.varian.replace(/"/g,'&quot;')}" ${m.sourceItem && m.sourceItem.varian===it.varian ? 'selected':''}>No.${it.no} — ${it.varian} — ${fmtRp(it.hargaHariIni)}</option>`).join('');
+    const fallbackNote = m.sourceItem && m.sourceItem.__viaFallback
+      ? `<div style="color:var(--amber); font-size:11px; margin-top:3px;">⚠ No. SP2KP tetap (${m.target.sourceNo}) tidak ditemukan — dicocokkan otomatis lewat nama.</div>` : '';
+
+    return `<div class="komoditas-item" id="komoditas-${idx}">
+      <div class="komoditas-head" onclick="toggleKomoditas(${idx})">
+        <div>
+          <div class="nm">${m.target.checklistNo}. ${m.target.checklistTitle}</div>
+          <div class="pr">${hargaTxt} ${statusBadge}</div>
+        </div>
+        <span class="chev">▾</span>
+      </div>
+      <div class="komoditas-body">
+        <div class="src-line">
+          Sesuai rumus tetap: SP2KP No.${m.target.sourceNo}${m.sourceItem?(' — '+m.sourceItem.varian):''}. ${fallbackNote}
+          Ubah manual bila perlu:
+          <select onchange="onSourceOverride(${idx}, this.value)">
+            <option value="">— pilih manual —</option>
+            ${candidateOptions}
+          </select>
+        </div>
+        <div style="margin-top:8px;">${opts}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  dlArea.innerHTML = `
+    <button class="btn btn-primary" onclick="downloadLaporanProvinsi()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Unduh Laporan Provinsi (.xlsx)
+    </button>
+    <button class="btn btn-outline" onclick="downloadRekapLengkap()">Unduh Rekap Lengkap (3 Sheet)</button>
+    <button class="btn btn-outline" onclick="driveSaveLaporan('prov')">☁ Simpan Laporan Provinsi ke Drive</button>
+    <button class="btn btn-outline" onclick="driveSaveLaporan('was')">☁ Simpan Was Inflasi ke Drive</button>
+    <div class="note">Harga &amp; keterangan diambil apa adanya dari data SP2KP yang diunggah — tidak diubah atau dikurangi.</div>
+  `;
+}
+
+/* ---------------------- 11. INTERAKSI ---------------------- */
+function toggleKomoditas(idx){
+  document.getElementById('komoditas-'+idx).classList.toggle('open');
+}
+function onOptionChange(idx, value){
+  const m = state.mapped[idx];
+  m.tickIndex = parseInt(value,10);
+  m.manualOverride = true;
+  if(m.tickIndex !== m.target.options.length-1) m.freeText = '';
+  persist();
+  renderProvinsi();
+  renderWasInflasi();
+  document.getElementById('komoditas-'+idx).classList.add('open');
+}
+function onFreeTextChange(idx, value){
+  state.mapped[idx].freeText = value;
+  state.mapped[idx].manualOverride = true;
+  persist();
+}
+function onSourceOverride(idx, varianName){
+  if(!varianName) return;
+  const m = state.mapped[idx];
+  const found = state.sp2kp.find(it=>it.varian===varianName);
+  if(!found) return;
+  m.sourceItem = found;
+  m.sourceOverrideVarian = varianName;
+  const tick = computeTick(m.target, found);
+  m.tickIndex = tick.tickIndex; m.freeText = tick.freeText; m.status = tick.status; m.needsReview = !!tick.needsReview;
+  m.manualOverride = true;
+  persist();
+  renderProvinsi();
+  renderWasInflasi();
+  renderBeranda();
+  document.getElementById('komoditas-'+idx).classList.add('open');
+  showToast('Sumber data komoditi diperbarui');
+}
+
+/* ---------------------- 12. EXPORT EXCEL (ExcelJS — rapi & siap cetak) ---------------------- */
+/* Struktur baris/kolom di bawah ini mengikuti PERSIS format file resmi yang
+   dijadikan acuan (Laporan TPID Inspektorat Kab. Muara Enim), termasuk nomor
+   baris tiap bagian & pilihan checklist. Yang otomatis menyesuaikan data:
+   - Kolom "Harga Jual (Rp)" baris 7-26, sesuai data SP2KP yang diunggah
+   - Tanggal data pada D5
+   - Tanda centang (✓/□) 20 blok "Penyebab Kenaikan Harga" — HANYA tanda
+     centang, tanpa uraian tulisan apa pun (termasuk baris "Yang lain" selalu
+     dibiarkan sebagai garis kosong, tidak diisi teks)
+   - Nilai Dukungan Anggaran butir a & b (dapat diubah lewat aplikasi)
+   Bagian 3 "Upaya Pemda" (semua tercentang) & butir c/d Dukungan Anggaran
+   (dikosongkan) mengikuti persis contoh pada file acuan. */
+
+const NAVY_ARGB = 'FF132A46';
+const GOLD_BG_ARGB = 'FFF3E9D2';
+const BORDER_THIN = { style:'thin', color:{argb:'FFAFA692'} };
+const CELL_BORDER = { top:BORDER_THIN, left:BORDER_THIN, bottom:BORDER_THIN, right:BORDER_THIN };
+
+function isNodeEnv(){ return typeof window === 'undefined'; }
+
+async function saveWorkbook(wb, filename){
+  if(isNodeEnv()){
+    await wb.xlsx.writeFile(filename);
+    return;
+  }
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+function styleTitle(cell, size){
+  cell.font = { bold:true, size:size||13, color:{argb:NAVY_ARGB}, name:'Calibri' };
+  cell.alignment = { horizontal:'center', vertical:'middle' };
+}
+function styleSectionHeading(cell){
+  cell.font = { bold:true, size:11.5, color:{argb:NAVY_ARGB}, name:'Calibri' };
+  cell.alignment = { vertical:'middle', wrapText:true };
+}
+function styleGroupCell(cell, text){
+  cell.value = text;
+  cell.font = { bold:true, size:10.5, color:{argb:NAVY_ARGB} };
+  cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:GOLD_BG_ARGB} };
+  cell.border = CELL_BORDER;
+  cell.alignment = { vertical:'middle' };
+}
+function styleOptionRow(ws, row, boxCell, labelCell, tickCell, labelText, ticked){
+  ws.getCell(boxCell).value = '\u25A1';
+  ws.getCell(boxCell).border = CELL_BORDER;
+  ws.getCell(boxCell).alignment = { horizontal:'center', vertical:'middle' };
+  ws.getCell(labelCell).value = labelText;
+  ws.getCell(labelCell).border = CELL_BORDER;
+  ws.getCell(labelCell).alignment = { vertical:'middle', wrapText:true };
+  ws.getCell(labelCell).font = { size:10 };
+  ws.getCell(tickCell).value = ticked ? '\u2713' : '\u25A1';
+  ws.getCell(tickCell).border = CELL_BORDER;
+  ws.getCell(tickCell).alignment = { horizontal:'center', vertical:'middle' };
+  ws.getCell(tickCell).font = { bold:true, size:13, color:{argb: ticked ? 'FF2E6B47' : 'FFB9B2A0'} };
+}
+function buildProvinsiSheet(wb){
+  const ws = wb.addWorksheet('Laporan Provinsi', {
+    pageSetup: { paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0,
+      margins:{left:0.5,right:0.4,top:0.5,bottom:0.5,header:0.3,footer:0.3} },
+    views:[{ showGridLines:false }]
+  });
+  ws.columns = [ {width:5.5}, {width:5}, {width:56}, {width:19} ];
+
+  // ---- Judul ----
+  ws.mergeCells('A1:D1'); ws.getCell('A1').value='Laporan Harian Pengawasan Pengendalian Inflasi Daerah'; styleTitle(ws.getCell('A1'),13);
+  ws.mergeCells('A2:D2'); ws.getCell('A2').value='Pemerintah Kabupaten Muara Enim'; styleTitle(ws.getCell('A2'),11);
+
+  // ---- Header tabel harga (baris 4-5) ----
+  ws.mergeCells('A4:A5'); ws.getCell('A4').value='No';
+  ws.mergeCells('B4:C5'); ws.getCell('B4').value='Uraian';
+  ws.getCell('D4').value='Harga Jual (Rp)';
+  ['A4','B4','D4'].forEach(addr=>{
+    const c = ws.getCell(addr);
+    c.font = { bold:true, color:{argb:'FFFFFFFF'}, size:10.5 };
+    c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:NAVY_ARGB} };
+    c.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
+  });
+  ['A4','A5','B4','B5','C4','C5','D4'].forEach(addr=>ws.getCell(addr).border=CELL_BORDER);
+  const dateCell = ws.getCell('D5');
+  dateCell.value = state.meta.tanggal || '';
+  dateCell.font = { italic:true, size:10, color:{argb:'FF5B5A53'} };
+  dateCell.alignment = { horizontal:'center', vertical:'middle' };
+  dateCell.border = CELL_BORDER;
+  ws.getCell('A6').value = 1; ws.getCell('A6').font = { bold:true };
+  ws.mergeCells('B6:D6');
+  ws.getCell('B6').value = 'Harga jual komoditi :';
+  styleSectionHeading(ws.getCell('B6'));
+
+  // ---- Bagian 1: Harga jual (baris 7-26) ----
+  state.mapped.forEach(m=>{
+    const r = m.target.priceRow;
+    const cNo = ws.getCell('B'+r), cNama = ws.getCell('C'+r), cHarga = ws.getCell('D'+r);
+    cNo.value = m.target.no; cNo.alignment={horizontal:'center',vertical:'middle'};
+    cNama.value = m.target.nama; cNama.alignment={vertical:'middle', wrapText:true};
+    if(m.sourceItem && m.sourceItem.hargaHariIni!=null){
+      cHarga.value = Math.round(m.sourceItem.hargaHariIni);
+      cHarga.numFmt = '"Rp" #,##0';
+    } else {
+      cHarga.value = 'Data tidak ditemukan';
+      cHarga.font = { italic:true, color:{argb:'FFB4791C'}, size:9.5 };
+    }
+    cHarga.alignment = { horizontal:'right', vertical:'middle' };
+    cHarga.font = cHarga.font || { bold:true, size:10 };
+    if(!cHarga.font.bold && cHarga.value!=='Data tidak ditemukan') cHarga.font = { bold:true, size:10 };
+    [cNo,cNama,cHarga].forEach(c=>c.border=CELL_BORDER);
+  });
+
+  // ---- Bagian 2: Penyebab kenaikan harga (HANYA tanda centang) ----
+  ws.getCell('A27').value = 2; ws.getCell('A27').font = { bold:true };
+  ws.mergeCells('B27:D27');
+  ws.getCell('B27').value = 'Jika terdapat kenaikan harga mohon diuraikan penyebab terjadinya kenaikan harga';
+  styleSectionHeading(ws.getCell('B27'));
+
+  state.mapped.forEach(m=>{
+    const tRow = m.target.titleRow;
+    ws.mergeCells(`B${tRow}:D${tRow}`);
+    styleGroupCell(ws.getCell(`B${tRow}`), `${m.target.checklistNo}. ${m.target.checklistTitle}`);
+    m.target.options.forEach((opt,i)=>{
+      const r = m.target.optionStartRow + i;
+      const isLast = i === m.target.options.length-1;
+      const label = isLast ? 'Yang lain : ' + '_'.repeat(60) : opt;
+      styleOptionRow(ws, r, `B${r}`, `C${r}`, `D${r}`, label, m.tickIndex===i);
+    });
+  });
+
+  // ---- Bagian 3: Upaya Pemda (tetap sesuai contoh — semua tercentang) ----
+  const r3 = 169;
+  ws.getCell(`A${r3}`).value = 3; ws.getCell(`A${r3}`).font = { bold:true };
+  ws.mergeCells(`B${r3}:D${r3}`);
+  ws.getCell(`B${r3}`).value = 'Jika terdapat kenaikan harga harap diuraikan upaya yang telah dilakukan pemerintah daerah';
+  styleSectionHeading(ws.getCell(`B${r3}`));
+  UPAYA_PEMDA.forEach((opt,i)=>{
+    const r = 170+i;
+    styleOptionRow(ws, r, `B${r}`, `C${r}`, `D${r}`, opt, true);
+  });
+  const rYangLain3 = 170 + UPAYA_PEMDA.length;
+  styleOptionRow(ws, rYangLain3, `B${rYangLain3}`, `C${rYangLain3}`, `D${rYangLain3}`, 'Yang lain : ' + '_'.repeat(60), false);
+
+  // ---- Bagian 4 & 5: narasi (kotak kosong untuk diisi manual) ----
+  [ [181,'4','Upaya yang dilakukan Pemda dalam mengantisipasi kenaikan biaya transportasi (angkutan dalam kota/angkutan laut/angkutan udara/BBM)'],
+    [183,'5','Saran dan masukan kepada Pemerintah Pusat dalam rangka pengendalian inflasi'] ].forEach(([r,no,txt])=>{
+    ws.getCell(`A${r}`).value = Number(no); ws.getCell(`A${r}`).font = { bold:true };
+    ws.mergeCells(`B${r}:D${r}`);
+    ws.getCell(`B${r}`).value = txt;
+    styleSectionHeading(ws.getCell(`B${r}`));
+    const boxRow = r+1;
+    ws.mergeCells(`B${boxRow}:D${boxRow}`);
+    ws.getRow(boxRow).height = 34;
+    ws.getCell(`B${boxRow}`).border = CELL_BORDER;
+    ws.getCell(`B${boxRow}`).alignment = { vertical:'top' };
+  });
+
+  // ---- Bagian 6: Dukungan Anggaran ----
+  const r6 = 187;
+  ws.getCell(`A${r6}`).value = 6; ws.getCell(`A${r6}`).font = { bold:true };
+  ws.mergeCells(`B${r6}:D${r6}`);
+  ws.getCell(`B${r6}`).value = 'Dukungan Anggaran';
+  styleSectionHeading(ws.getCell(`B${r6}`));
+  const anggaranRows = [
+    ['a.', 'Alokasi Belanja Operasi Pasar pada Dinas Perdagangan', state.anggaran.alokasi],
+    ['b.', 'Realisasi Belanja Operasi Pasar pada Dinas Perdagangan', state.anggaran.realisasi],
+    ['c.', 'Alokasi Belanja Tidak Terduga (BTT)', null],
+    ['d.', 'Realisasi BTT untuk dukungan Pengendalian Inflasi', null],
+  ];
+  anggaranRows.forEach((row,i)=>{
+    const r = r6+1+i;
+    const cKode = ws.getCell(`B${r}`), cLabel = ws.getCell(`C${r}`), cNilai = ws.getCell(`D${r}`);
+    cKode.value = row[0]; cKode.alignment = {horizontal:'center', vertical:'middle'};
+    cLabel.value = row[1]; cLabel.alignment = {vertical:'middle', wrapText:true}; cLabel.font = {size:10};
+    if(row[2]!=null){ cNilai.value = row[2]; cNilai.numFmt = '"Rp" #,##0.00'; cNilai.font = {bold:true, size:10}; }
+    cNilai.alignment = { horizontal:'right', vertical:'middle' };
+    [cKode,cLabel,cNilai].forEach(c=>c.border=CELL_BORDER);
+  });
+  ws.getCell(`A${r6+6}`).value = '* Alasan dapat lebih dari 1';
+  ws.getCell(`A${r6+6}`).font = { italic:true, size:9, color:{argb:'FF5B5A53'} };
+
+  return ws;
+}
+
+const UPAYA_PEMDA = [
+  'Melakukan sidak ke pasar dan distributir agar tidak menahan barang',
+  'Melakukan operasi pasar',
+  'Berkoordinasi dengan daerah penghasil komoditi',
+  'Mendapatkan informasi daerah yang mengalami surplus komoditi',
+  'Rapat teknis Tim Pengendali Inflasi Daerah',
+  'Melakukan pemantauan harga dan stok untuk memastikan kebutuhan tersedia',
+  'Melaksanakan pencanangan gerakan menanam',
+  'Menjaga pasokan',
+  'Memberikan bantuan transportasi dari APBD',
+];
+
+function buildWasInflasiSheet(wb){
+  const ws = wb.addWorksheet('Input Was Inflasi');
+  ws.columns = [ {width:5}, {width:44}, {width:16}, {width:30} ];
+  ws.mergeCells('A1:D1');
+  ws.getCell('A1').value = 'Data Penginputan Wasinflasi';
+  styleTitle(ws.getCell('A1'), 12);
+  const head = ws.getRow(2);
+  head.values = ['No','Komoditi','Harga (Rp)','Penyebab'];
+  head.eachCell(c=>{ c.font={bold:true,color:{argb:'FFFFFFFF'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:NAVY_ARGB}}; c.alignment={horizontal:'center',vertical:'middle'}; c.border=CELL_BORDER; });
+  wasInflasiRows().forEach(({no,m})=>{
+    const r = ws.addRow([no, m.target.nama, m.sourceItem ? Math.round(m.sourceItem.hargaHariIni) : null,
+      m.status==='naik' ? (m.freeText || (m.tickIndex!=null ? m.target.options[m.tickIndex] : '')) : 0]);
+    r.getCell(3).numFmt = '"Rp" #,##0';
+    r.eachCell(c=>{ c.border=CELL_BORDER; c.alignment={vertical:'middle', wrapText:true}; });
+    r.getCell(1).alignment = {horizontal:'center',vertical:'middle'};
+    r.getCell(3).alignment = {horizontal:'right',vertical:'middle'};
+  });
+  return ws;
+}
+function buildSP2KPSheet(wb){
+  const ws = wb.addWorksheet('Laporan SP2KP');
+  ws.columns = [ {width:5}, {width:42}, {width:12}, {width:14}, {width:14}, {width:10}, {width:26} ];
+  ws.mergeCells('A1:G1');
+  ws.getCell('A1').value = 'Kertas Kerja Harian SP2KP — ' + (state.meta.pasar||'');
+  styleTitle(ws.getCell('A1'), 12);
+  ws.mergeCells('A2:G2');
+  ws.getCell('A2').value = 'Tanggal: ' + (state.meta.tanggal||'-');
+  ws.getCell('A2').alignment = {horizontal:'center'};
+  const head = ws.getRow(3);
+  head.values = ['No','Varian Komoditi','Satuan','Harga Ini','Sebelum','Selisih','Penyebab'];
+  head.eachCell(c=>{ c.font={bold:true,color:{argb:'FFFFFFFF'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:NAVY_ARGB}}; c.alignment={horizontal:'center',vertical:'middle'}; c.border=CELL_BORDER; });
+  state.sp2kp.forEach(it=>{
+    const selisih = it.hargaSebelumnya ? (it.hargaHariIni-it.hargaSebelumnya)/it.hargaSebelumnya : 0;
+    const r = ws.addRow([it.no, it.varian, it.satuan, it.hargaHariIni, it.hargaSebelumnya, selisih, it.penyebab||'']);
+    r.getCell(4).numFmt = '"Rp" #,##0'; r.getCell(5).numFmt = '"Rp" #,##0'; r.getCell(6).numFmt = '0.0%';
+    r.eachCell(c=>{ c.border=CELL_BORDER; c.alignment={vertical:'middle'}; });
+  });
+  return ws;
+}
+
+async function downloadLaporanProvinsi(){
+  if(!state.mapped.length){ showToast('Belum ada data untuk diunduh'); return; }
+  const wb = new ExcelJS.Workbook();
+  buildProvinsiSheet(wb);
+  const tanggalSlug = (state.meta.tanggal||'data').replace(/[^\w]+/g,'_');
+  await saveWorkbook(wb, `Laporan_Provinsi_MuaraEnim_${tanggalSlug}.xlsx`);
+  showToast('Laporan Provinsi berhasil diunduh (rapi & siap cetak)');
+}
+async function downloadRekapLengkap(){
+  if(!state.mapped.length){ showToast('Belum ada data untuk diunduh'); return; }
+  const wb = new ExcelJS.Workbook();
+  buildSP2KPSheet(wb);
+  buildWasInflasiSheet(wb);
+  buildProvinsiSheet(wb);
+  const tanggalSlug = (state.meta.tanggal||'data').replace(/[^\w]+/g,'_');
+  await saveWorkbook(wb, `Rekap_WasInflasi_MuaraEnim_${tanggalSlug}.xlsx`);
+  showToast('Rekap lengkap berhasil diunduh');
+}
+
+/* ---------------------- 13. NAVIGASI ---------------------- */
+function switchView(name){
+  state.currentView = name;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+  document.querySelector('.content').scrollTop = 0;
+}
+document.querySelectorAll('.navbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>switchView(btn.dataset.view));
+});
+
+/* ---------------------- 14. UPLOAD HANDLER ---------------------- */
+document.getElementById('dropzone').addEventListener('click', ()=>document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      const data = new Uint8Array(evt.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const parsed = parseSP2KPWorkbook(wb);
+      state.sp2kp = parsed.items;
+      state.meta = { tanggal: parsed.tanggal, pasar: parsed.pasar, fileName: file.name };
+      state._file = file; G.date = todayIso();
+      buildMapping();
+      persist();
+      renderAll();
+      autoSync();
+      showToast(`Berhasil memuat ${parsed.items.length} komoditi dari sheet "${parsed.sheetName}"`);
+    }catch(err){
+      alert('Gagal membaca file: '+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+
+/* ---------------------- 16. GOOGLE DRIVE & SHEETS ---------------------- */
+const DEFAULT_CLIENT_ID = ''; // opsional: isi Client ID di sini agar semua perangkat langsung terhubung
+const GK='ewasda_g_v1', ROOT='E-WASDA', SCOPE='https://www.googleapis.com/auth/drive.file';
+const FD={sp2kp:'SP2KP', prov:'Laporan Provinsi', was:'Laporan Was Inflasi', bukti:'Bukti Tindakan'};
+const TND=[['01 Sidak Pasar dan Distributor','Melakukan sidak ke pasar dan distributor agar tidak menahan barang'],
+['02 Operasi Pasar','Melakukan operasi pasar'],['03 Koordinasi Daerah Penghasil','Berkoordinasi dengan daerah penghasil komoditi'],
+['04 Rapat Teknis TPID','Rapat teknis Tim Pengendali Inflasi Daerah'],['05 Pemantauan Harga dan Stok','Melakukan pemantauan harga dan stok untuk memastikan kebutuhan tersedia'],
+['06 Gerakan Menanam','Melaksanakan pencanangan gerakan menanam'],['07 Menjaga Pasokan','Menjaga pasokan bahan'],
+['08 Bantuan Transportasi APBD','Memberikan bantuan transportasi dari APBD'],['09 Realisasi BTT','Merealisasikan BTT untuk Pengendalian Inflasi']];
+const BS=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const G={cfg:{},token:null,exp:0,busy:false,status:'',date:'',tdate:''};
+try{G.cfg=JSON.parse(localStorage.getItem(GK))||{};}catch(e){}
+G.cfg.fc=G.cfg.fc||{}; G.cfg.ss=G.cfg.ss||{}; G.cfg.log=G.cfg.log||[];
+const gsave=()=>{try{localStorage.setItem(GK,JSON.stringify(G.cfg));}catch(e){}};
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const isoOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const todayIso=()=>isoOf(new Date());
+const isWorkday=i=>{const d=new Date(i+'T00:00:00').getDay();return d>0&&d<6;};
+const dmy=i=>i.slice(8)+'/'+i.slice(5,7)+'/'+i.slice(0,4);
+const undmy=x=>x.slice(6)+'-'+x.slice(3,5)+'-'+x.slice(0,2);
+const cid=()=>(G.cfg.clientId||DEFAULT_CLIENT_ID||'').trim();
+const hasToken=()=>G.token&&Date.now()<G.exp-60000;
+const curIso=()=>G.date||todayIso();
+const MON={januari:1,jan:1,februari:2,pebruari:2,feb:2,maret:3,mar:3,april:4,apr:4,mei:5,may:5,juni:6,jun:6,juli:7,jul:7,agustus:8,agu:8,agt:8,aug:8,september:9,sep:9,sept:9,oktober:10,okt:10,oct:10,november:11,nov:11,desember:12,des:12,dec:12};
+function parseTgl(t){
+  t=String(t||'').trim(); if(!t) return ''; let m;
+  if(/^\d{5}$/.test(t)){const d=new Date(Math.round((+t-25569)*864e5));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate());}
+  if(m=t.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)) return m[1]+'-'+pad(+m[2])+'-'+pad(+m[3]);
+  if(m=t.match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/)) return m[3]+'-'+pad(+m[2])+'-'+pad(+m[1]);
+  if(m=t.match(/(\d{1,2})[\s\-\/]+([A-Za-z]+)[\s\-\/,]+(\d{4})/)){const mo=MON[m[2].toLowerCase()]; if(mo) return m[3]+'-'+pad(mo)+'-'+pad(+m[1]);}
+  return '';
+}
+
+/* --- autentikasi & permintaan --- */
+function getToken(){return new Promise((ok,no)=>{
+  if(hasToken()) return ok(G.token);
+  if(!cid()) return no(new Error('Isi Client ID Google terlebih dahulu (kartu Koneksi di Beranda)'));
+  if(!window.google||!google.accounts) return no(new Error('Library Google belum termuat — periksa internet'));
+  google.accounts.oauth2.initTokenClient({client_id:cid(),scope:SCOPE,
+    callback:r=>{ if(r.error) return no(new Error(r.error)); G.token=r.access_token; G.exp=Date.now()+(r.expires_in||3600)*1e3; G.cfg.on=1; gsave(); renderDrive(); ok(G.token); },
+    error_callback:()=>no(new Error('Login Google dibatalkan'))
+  }).requestAccessToken({prompt:G.cfg.on?'':'consent'});
+});}
+async function gj(url,o={}){
+  const t=await getToken(), h={Authorization:'Bearer '+t,...(o.headers||{})}; let body=o.body;
+  if(body&&!(body instanceof Blob)&&typeof body==='object'){body=JSON.stringify(body);h['Content-Type']='application/json';}
+  const r=await fetch(url,{method:o.method||'GET',headers:h,body});
+  if(!r.ok){let m='HTTP '+r.status;try{m=(await r.json()).error.message;}catch(e){}throw new Error(m);}
+  return r.status===204?{}:r.json();
+}
+async function busy(msg,fn){
+  if(G.busy) return; G.busy=true; G.status=msg; renderRekap(); renderDrive(); renderTindakan();
+  try{ await getToken(); await fn(); }
+  catch(e){ G.cfg.fc={}; G.cfg.ss={}; gsave(); G.status='⚠ '+e.message; showToast(e.message.slice(0,90)); }
+  finally{ G.busy=false; renderRekap(); renderDrive(); renderTindakan(); }
+}
+
+/* --- Drive --- */
+const D='https://www.googleapis.com/drive/v3/files';
+async function ensurePath(p){
+  let parent=null,key='';
+  for(const n of p){
+    key+='/'+n; if(G.cfg.fc[key]){parent=G.cfg.fc[key];continue;}
+    const q=`mimeType='application/vnd.google-apps.folder' and name='${n}' and trashed=false`+(parent?` and '${parent}' in parents`:'');
+    let f=(await gj(D+'?fields=files(id)&q='+encodeURIComponent(q))).files[0];
+    if(!f) f=await gj(D+'?fields=id',{method:'POST',body:{name:n,mimeType:'application/vnd.google-apps.folder',...(parent?{parents:[parent]}:{})}});
+    G.cfg.fc[key]=parent=f.id;
+  }
+  gsave(); return parent;
+}
+async function upsert(parent,name,blob,mime){
+  const q=`name='${name.replace(/'/g,"\\'")}' and '${parent}' in parents and trashed=false`;
+  const ex=(await gj(D+'?fields=files(id)&q='+encodeURIComponent(q))).files[0];
+  if(ex) return gj(`https://www.googleapis.com/upload/drive/v3/files/${ex.id}?uploadType=media&fields=id,name,webViewLink`,{method:'PATCH',headers:{'Content-Type':mime},body:blob});
+  const b='ewasda'+Date.now();
+  const body=new Blob([`--${b}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify({name,parents:[parent]})}\r\n--${b}\r\nContent-Type: ${mime}\r\n\r\n`,blob,`\r\n--${b}--`]);
+  return gj('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body});
+}
+
+/* --- Rekap Google Sheets (1 spreadsheet/tahun, 1 sheet/bulan) --- */
+const SH='https://sheets.googleapis.com/v4/spreadsheets';
+const XL='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+async function getSS(y){
+  if(G.cfg.ss[y]) return G.cfg.ss[y];
+  const root=await ensurePath([ROOT]), name='Rekap Harga E-WASDA '+y;
+  const q=`mimeType='application/vnd.google-apps.spreadsheet' and name='${name}' and '${root}' in parents and trashed=false`;
+  let f=(await gj(D+'?fields=files(id)&q='+encodeURIComponent(q))).files[0];
+  if(!f) f=await gj(D+'?fields=id',{method:'POST',body:{name,mimeType:'application/vnd.google-apps.spreadsheet',parents:[root]}});
+  G.cfg.ss[y]=f.id; gsave(); return f.id;
+}
+function readBlock(v,L){
+  const i=v.findIndex(r=>String(r[0]||'').startsWith(L+'. ')); if(i<0) return [];
+  const dates=(v[i+1]||[]).slice(3).map(String).filter(x=>/^\d\d\/\d\d\/\d{4}$/.test(x)).map(undmy), rows=[];
+  for(let j=i+2;v[j]&&v[j][1];j++){const vals={};dates.forEach((d,k)=>{const x=v[j][3+k];if(x!==undefined&&x!=='')vals[d]=x;});rows.push({no:v[j][0],nama:String(v[j][1]),satuan:v[j][2]||'',vals});}
+  return rows;
+}
+function merge(old,cur,iso){
+  const mp=new Map(old.map(r=>[r.nama,r])),seen=new Set(),out=[];
+  cur.forEach(c=>{const r=mp.get(c.nama)||{vals:{}};r.no=c.no;r.nama=c.nama;r.satuan=c.satuan||r.satuan||'';
+    if(c.val==null||c.val==='')delete r.vals[iso];else r.vals[iso]=c.val;out.push(r);seen.add(c.nama);});
+  old.forEach(r=>{if(!seen.has(r.nama))out.push(r);});
+  return out;
+}
+function mon(i){const d=new Date(i+'T00:00:00');d.setDate(d.getDate()-(d.getDay()+6)%7);return isoOf(d);}
+function summ(rows,dates,wk){
+  return rows.map(r=>{
+    const s=dates.filter(d=>typeof r.vals[d]==='number').map(d=>[d,r.vals[d]]);
+    const f=s.length?s[0][1]:'', l=s.length?s[s.length-1][1]:'', dd=s.length>1?l-s[s.length-2][1]:'';
+    const w=wk.map((k,n)=>{const a=s.filter(x=>mon(x[0])===k); if(!a.length) return ''; const b=n?s.filter(x=>mon(x[0])<k):[]; return a[a.length-1][1]-(b.length?b[b.length-1][1]:f);});
+    return [r.no,r.nama,r.satuan,f,l,dd,...w,s.length?l-f:'',s.length&&f?(l-f)/f:''];
+  });
+}
+function buildSheet(title,A,B,C,dates){
+  const wk=[...new Set(dates.map(mon))], dh=dates.map(dmy), rows=[[title],['Diperbarui '+new Date().toLocaleString('id-ID')+' · data terakhir '+dmy(dates[dates.length-1])]], sec=[];
+  const put=(L,label,head,data,kind)=>{rows.push([]);rows.push([L+'. '+label]);const lr=rows.length-1;rows.push(head);const hr=rows.length-1;data.forEach(r=>rows.push(r));sec.push({lr,hr,f:hr+1,e:rows.length-1,kind});};
+  const pr=R=>R.map(r=>[r.no,r.nama,r.satuan,...dates.map(d=>r.vals[d]??'')]), ph=['No','Komoditi','Satuan',...dh];
+  const dh2=['No','Komoditi','Satuan','Harga Awal Bulan','Harga Terakhir','Δ Hari Terakhir (Rp)',...wk.map((k,n)=>{const a=dates.filter(d=>mon(d)===k);return `Δ Mgg ${n+1} (${+a[0].slice(8)}-${+a[a.length-1].slice(8)}) Rp`;}),'Δ Bulan (Rp)','Δ Bulan (%)'];
+  put('A','20 KOMODITI INTI (Laporan Provinsi & Was Inflasi) — harga harian',ph,pr(A),'p');
+  put('B',B.length+' VARIAN SP2KP — harga harian',ph,pr(B),'p');
+  put('C','PENYEBAB KENAIKAN 20 KOMODITI INTI (Laporan Provinsi)',ph,pr(C),'t');
+  put('D','KENAIKAN 20 KOMODITI INTI — harian, mingguan, bulanan',dh2,summ(A,dates,wk),'d');
+  put('E','KENAIKAN '+B.length+' VARIAN SP2KP — harian, mingguan, bulanan',dh2,summ(B,dates,wk),'d');
+  return {rows,sec,W:wk.length};
+}
+function fmtReqs(id,b,nc){
+  const rg=(r1,r2,c1,c2)=>({sheetId:id,startRowIndex:r1,endRowIndex:r2,startColumnIndex:c1,endColumnIndex:c2});
+  const rc=(r,f,fl)=>({repeatCell:{range:r,cell:{userEnteredFormat:f},fields:'userEnteredFormat('+fl+')'}});
+  const wd=(a,z,px)=>({updateDimensionProperties:{range:{sheetId:id,dimension:'COLUMNS',startIndex:a,endIndex:z},properties:{pixelSize:px},fields:'pixelSize'}});
+  const q=[{updateSheetProperties:{properties:{sheetId:id,gridProperties:{frozenColumnCount:2}},fields:'gridProperties.frozenColumnCount'}},
+    wd(0,1,45),wd(1,2,280),wd(2,nc,110),rc(rg(0,1,0,1),{textFormat:{bold:true,fontSize:14}},'textFormat')];
+  b.sec.forEach(s=>{
+    q.push(rc(rg(s.lr,s.lr+1,0,nc),{backgroundColor:{red:.95,green:.91,blue:.78},textFormat:{bold:true}},'backgroundColor,textFormat'));
+    q.push(rc(rg(s.hr,s.hr+1,0,nc),{backgroundColor:{red:.07,green:.16,blue:.27},textFormat:{bold:true,foregroundColor:{red:1,green:1,blue:1}},wrapText:true,horizontalAlignment:'CENTER'},'backgroundColor,textFormat,wrapText,horizontalAlignment'));
+    const nf=(c1,c2,t,p)=>q.push(rc(rg(s.f,s.e+1,c1,c2),{numberFormat:{type:t,pattern:p}},'numberFormat'));
+    if(s.kind==='p') nf(3,nc,'NUMBER','#,##0');
+    if(s.kind==='d'){nf(3,5,'NUMBER','#,##0');nf(5,7+b.W,'NUMBER','+#,##0;-#,##0;0');nf(7+b.W,8+b.W,'PERCENT','+0.00%;-0.00%;0.00%');}
+  });
+  return q;
+}
+async function syncRekap(iso){
+  const y=+iso.slice(0,4), title=BS[+iso.slice(5,7)-1]+' '+y, id=await getSS(y);
+  const meta=await gj(`${SH}/${id}?fields=sheets.properties`);
+  let sh=meta.sheets.find(x=>x.properties.title===title), v=[];
+  if(!sh){
+    const rq=[{addSheet:{properties:{title}}}];
+    meta.sheets.filter(x=>/^(sheet ?1|lembar ?1)$/i.test(x.properties.title)).forEach(x=>rq.push({deleteSheet:{sheetId:x.properties.sheetId}}));
+    sh={properties:(await gj(`${SH}/${id}:batchUpdate`,{method:'POST',body:{requests:rq}})).replies[0].addSheet.properties};
+  } else v=(await gj(`${SH}/${id}/values/${encodeURIComponent("'"+title+"'!A1:AN400")}?valueRenderOption=UNFORMATTED_VALUE`)).values||[];
+  const rnd=x=>x!=null?Math.round(x):null;
+  const A=merge(readBlock(v,'A'),state.mapped.map(m=>({no:m.target.no,nama:m.target.nama,satuan:m.sourceItem?m.sourceItem.satuan:'',val:m.sourceItem?rnd(m.sourceItem.hargaHariIni):null})),iso);
+  const B=merge(readBlock(v,'B'),state.sp2kp.map(it=>({no:it.no,nama:it.varian,satuan:it.satuan,val:rnd(it.hargaHariIni)})),iso);
+  const C=merge(readBlock(v,'C'),state.mapped.map(m=>({no:m.target.no,nama:m.target.nama,satuan:'',val:m.status==='naik'?(m.freeText||(m.tickIndex!=null?m.target.options[m.tickIndex]:'Belum dipilih')):'Tidak ada kenaikan'})),iso);
+  const dates=[...new Set([iso,...[A,B,C].flatMap(R=>R.flatMap(r=>Object.keys(r.vals)))])].sort();
+  const b=buildSheet(`REKAP HARGA E-WASDA — ${title} · ${state.meta.pasar||'Kab. Muara Enim'}`,A,B,C,dates);
+  const nc=Math.max(3+dates.length,8+b.W), rg=encodeURIComponent("'"+title+"'");
+  await gj(`${SH}/${id}/values/${rg}!A1:AN400:clear`,{method:'POST',body:{}});
+  await gj(`${SH}/${id}/values/${rg}!A1?valueInputOption=RAW`,{method:'PUT',body:{values:b.rows}});
+  await gj(`${SH}/${id}:batchUpdate`,{method:'POST',body:{requests:fmtReqs(sh.properties.sheetId,b,nc)}});
+  G.cfg.lastLink=`https://docs.google.com/spreadsheets/d/${id}/edit#gid=${sh.properties.sheetId}`; gsave();
+  return title;
+}
+
+/* --- aksi --- */
+async function runSync(){
+  if(!state.sp2kp.length) return showToast('Unggah file SP2KP terlebih dahulu');
+  const iso=curIso();
+  await busy('Mengirim ke Google Drive…',async()=>{
+    if(state._file){
+      const f=await ensurePath([ROOT,FD.sp2kp]), ext=(state._file.name.match(/\.\w+$/)||['.xlsx'])[0];
+      await upsert(f,'SP2KP_'+iso+ext,state._file,state._file.type||XL);
+    }
+    const t=await syncRekap(iso);
+    G.status='✓ '+(state._file?'File SP2KP tersimpan di Drive & ':'')+'rekap sheet "'+t+'" diperbarui untuk '+dmy(iso);
+    showToast('Drive & rekap diperbarui');
+  });
+}
+function autoSync(){
+  if(!cid()||!hasToken()){G.status='Data dimuat. Hubungkan Google Drive, lalu ketuk "Kirim ke Drive & Perbarui Rekap".';renderRekap();return;}
+  if(!G.date){G.status='Pilih tanggal di bawah, lalu kirim.';renderRekap();return;}
+  runSync();
+}
+async function driveSaveLaporan(k){
+  if(!state.mapped.length) return showToast('Belum ada data');
+  await busy('Menyimpan laporan ke Drive…',async()=>{
+    const wb=new ExcelJS.Workbook(); k==='prov'?buildProvinsiSheet(wb):buildWasInflasiSheet(wb);
+    const blob=new Blob([await wb.xlsx.writeBuffer()],{type:XL}), f=await ensurePath([ROOT,FD[k]]);
+    const r=await upsert(f,(k==='prov'?'Laporan_Provinsi_MuaraEnim_':'Laporan_WasInflasi_MuaraEnim_')+curIso()+'.xlsx',blob,XL);
+    G.status='✓ '+r.name+' tersimpan di folder "'+FD[k]+'"'; showToast('Tersimpan di Google Drive');
+  });
+}
+async function uploadBukti(i,inp){
+  const files=[...inp.files]; inp.value=''; if(!files.length) return;
+  const iso=todayIso();
+  if(!isWorkday(iso)&&!confirm('Tanggal ini bukan hari kerja. Tetap unggah?')) return;
+  await busy(`Mengunggah ${files.length} file…`,async()=>{
+    const f=await ensurePath([ROOT,FD.bukti,TND[i][0],iso]);
+    for(const x of files){const r=await upsert(f,x.name,x,x.type||'application/octet-stream');G.cfg.log.push({a:i,d:iso,n:r.name,l:r.webViewLink||'#'});}
+    G.cfg.log=G.cfg.log.slice(-600); gsave(); G.status='✓ '+files.length+' file tersimpan di Drive (tindakan '+(i+1)+', '+dmy(iso)+')';
+  });
+}
+async function connectGoogle(){ try{await getToken();showToast('Google Drive terhubung');}catch(e){alert(e.message);} }
+function disconnectGoogle(){ if(G.token&&window.google)google.accounts.oauth2.revoke(G.token); G.token=null;G.cfg.on=0;gsave();renderDrive(); }
+
+/* --- tampilan --- */
+function renderDrive(){
+  const el=document.getElementById('driveCard'); if(!el) return;
+  const on=hasToken(), root=G.cfg.fc['/'+ROOT];
+  el.innerHTML=`<div class="card"><div class="row"><b style="color:var(--navy)">Google Drive</b>
+    <span class="chip ${on?'ok':'off'}">${on?'Terhubung':(G.cfg.on?'Sesi berakhir':'Belum terhubung')}</span></div>
+    ${DEFAULT_CLIENT_ID?'':`<label class="lbl" style="margin-top:10px">Client ID Google (OAuth Web)</label>
+    <input class="inp" value="${esc(G.cfg.clientId||'')}" placeholder="xxxx.apps.googleusercontent.com" onchange="G.cfg.clientId=this.value.trim();gsave();renderDrive()">`}
+    <button class="btn btn-primary" onclick="connectGoogle()" ${G.busy?'disabled':''}>${on?'Perbarui sesi Google':'Hubungkan Google Drive'}</button>
+    ${on?'<button class="btn btn-outline sm" onclick="disconnectGoogle()">Putuskan</button>':''}
+    ${root?`<a class="btn btn-outline sm" href="https://drive.google.com/drive/folders/${root}" target="_blank" rel="noopener">Buka folder E-WASDA</a>`:''}
+    <div class="stt">${esc(G.status||'')}</div>
+    <div class="note" style="text-align:left">Akses hanya ke file yang dibuat aplikasi ini (scope drive.file). Sesi Google habis ±1 jam; ketuk “Perbarui sesi” bila diminta.</div></div>`;
+}
+function renderTindakan(){
+  const el=document.getElementById('tindakanList'); if(!el) return;
+  const d=G.tdate||(G.tdate=todayIso());
+  document.getElementById('tindakanDate').value=d;
+  document.getElementById('tindakanNote').textContent=isWorkday(d)?'':'';
+  document.getElementById('tindakanStatus').textContent=G.status||'';
+  el.innerHTML=TND.map((t,i)=>{const L=G.cfg.log.filter(x=>x.a===i&&x.d===d);
+    return `<div class="card tc"><div class="row"><div class="t">${i+1}. ${t[1]}</div><span class="chip ${L.length?'ok':'off'}">${L.length?L.length+' file':'Belum'}</span></div>
+    ${L.map(x=>`<a href="${esc(x.l)}" target="_blank" rel="noopener">📎 ${esc(x.n)}</a>`).join('')}
+    <button class="btn btn-outline sm" ${G.busy?'disabled':''} onclick="document.getElementById('tf${i}').click()">⬆ Unggah ke Drive</button>
+    <input type="file" id="tf${i}" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display:none" onchange="uploadBukti(${i},this)"></div>`;}).join('');
+}
+function renderRekap(){
+  const el=document.getElementById('rekapBox'); if(!el) return;
+  const d=curIso();
+  el.innerHTML=`<div class="card"><label class="lbl">Tanggal unggah (otomatis hari ini, dapat diubah)</label>
+    <input type="date" class="inp" value="${d}" onchange="G.date=this.value;renderRekap()">
+    ${isWorkday(d)?'':'<div class="stt" style="color:var(--red)">⚠ Tanggal ini bukan hari kerja.</div>'}
+    <button class="btn btn-primary" onclick="runSync()" ${state.sp2kp.length&&!G.busy?'':'disabled'}>☁ Kirim ke Drive &amp; Perbarui Rekap</button>
+    <div class="stt">${esc(G.status||'')}</div>
+    ${G.cfg.lastLink?`<a class="btn btn-outline" href="${esc(G.cfg.lastLink)}" target="_blank" rel="noopener">Buka Google Sheets Rekap</a>`:''}
+    <div class="note" style="text-align:left">Satu spreadsheet per tahun, satu sheet per bulan. Isi: harga harian 20 inti &amp; 51 varian, penyebab kenaikan, serta selisih harian, mingguan (Senin–Jumat), dan bulanan.</div></div>`;
+}
+
+/* ---------------------- 15. INIT ---------------------- */
+function renderAll(){
+  renderBeranda();
+  renderSP2KP(document.getElementById('searchSP2KP').value);
+  renderWasInflasi();
+  renderProvinsi();
+  renderDrive(); renderTindakan(); renderRekap();
+}
+document.getElementById('searchSP2KP').addEventListener('input', function(){ renderSP2KP(this.value); });
+
+(function init(){
+  const had = restore();
+  renderAll();
+  if(had) showToast('Data terakhir berhasil dimuat kembali');
+})();
+
+</script>
+</body>
+</html>
